@@ -28,6 +28,20 @@ if not EMAIL or not PASSWORD:
 DYNAMIC_APP_NAME = "未知应用"
 
 # ============================================================
+#  邮箱脱敏函数（新增）
+# ============================================================
+def mask_email(email: str) -> str:
+    try:
+        name, domain = email.split("@", 1)
+        if len(name) <= 3:
+            masked_name = name[0] + "***"
+        else:
+            masked_name = name[:3] + "***"
+        return f"{masked_name}@{domain}"
+    except Exception:
+        return "未知账号"
+        
+# ============================================================
 #  Telegram 推送模块
 # ============================================================
 def send_tg_message(status_icon, status_text, time_left):
@@ -40,13 +54,15 @@ def send_tg_message(status_icon, status_text, time_left):
     current_time_str = time.strftime("%Y-%m-%d %H:%M:%S", local_time)
 
     # 按照格式拼接消息，动态注入抓取到的应用名称
+    masked = mask_email(EMAIL) if EMAIL else "未知账号"
+
     text = (
+        f"👤 账号: {masked}\n"
         f"🖥 {DYNAMIC_APP_NAME}\n"
         f"{status_icon} {status_text}\n"
         f"⏱️ 剩余: {time_left}\n"
         f"时间: {current_time_str}"
     )
-
     url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TG_CHAT_ID,
